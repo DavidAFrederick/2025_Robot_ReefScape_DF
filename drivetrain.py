@@ -41,21 +41,23 @@ from phoenix6.controls import (
 )
 from phoenix6.unmanaged import feed_enable
 import navx
-from pathplannerlib.path import PathPlannerPath
-from pathplannerlib.commands import FollowPathRamsete
-from pathplannerlib.config import ReplanningConfig, PIDConstants
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.controller import PPLTVController
+from pathplannerlib.config import RobotConfig
 
 from typing import Callable
 import constants
 
 VISION_KP = 0.012
 FEEDFORWARD = 0.1
+# FOLLOWER_MOTORS_PRESENT = False
+FOLLOWER_MOTORS_PRESENT = True
 
 
 class DriveTrain(Subsystem):
     __DRIVER_DEADBAND = 0.1
     __FORWARD_SLEW = 3  # 1/3 of a second to full speed
-    __CLAMP_SPEED = 1.0
+    __CLAMP_SPEED = 0.3
     __TURN_PID_SPEED = 0.3
 
     def __init__(self, test_mode=False) -> None:
@@ -98,6 +100,47 @@ class DriveTrain(Subsystem):
         self._test_mode = test_mode
         if self._test_mode:
             SmartDashboard.putNumber("ClampSpeed", 0.3)
+
+        # Setup the autonomous configuration for Pathplanner
+                # increasing Qelems numbers, tries to drive more conservatively as the effect
+        # In the math, what we're doing is weighting the error less heavily, meaning,
+        # as the error gets larger don't react as much.  This makes the robot drive
+        # conservatively along the path.
+        # Decreasing Relems should make the motors drive less aggressively (fewer volts)
+        # In the math, this is the same as increasing Q values.  Basically, think of it
+        # like a car, if you limit how far you can press the gas pedal, a driver
+        # has a better chance of keeping the car under control
+        # Down below, in comments, there are a few candidate values that have been used
+        # under testing.  Tweak, and test, to find the right ones.
+        # [0.0625, 0.125, 2.5],  # <-- Q Elements
+        # [0.075, 0.15, 3.1],
+        # [0.09, 0.19, 3.7],
+        # [0.125, 2.5, 5.0],
+        # [0.19, 3.75, 7.5],
+        # [2.5, 5.0, 10.0],
+        # current [-5, 5],  # <-- R elements
+        # [-8, 8],
+        # [-10, 10],
+        # [-11, 11],
+        # [-12, 12],
+        ltv_q_elems = [0.09, 0.19, 3.7]
+        ltv_r_elems = [-9, 9]
+        if RobotBase.isSimulation():
+            ltv_q_elems = [0.09, 0.19, 3.7]
+            ltv_r_elems = [-10, 10]
+
+        config = RobotConfig.fromGUISettings()
+
+        AutoBuilder.configure(
+            self.get_robot_pose,
+            self.reset_odometry,
+            self.get_wheel_speeds,  # Current ChassisSpeeds supplier
+            lambda speeds, feedforwards: self.driveSpeeds(speeds), # Method that will drive the robot given ChassisSpeeds
+            PPLTVController(ltv_q_elems, ltv_r_elems, 0.02 ),
+            config,
+            self.should_flip_path,  # Flip if we're on the red side
+            self,  # Reference to this subsystem to set requirements
+        )
 
     def __configure_simulation(self) -> None:
         self._sim_gyro = wpilib.simulation.SimDeviceSim("navX-Sensor[4]")
@@ -191,7 +234,8 @@ class DriveTrain(Subsystem):
 
     def __configure_left_side_drive(self) -> None:
         self._left_leader = TalonFX(constants.DT_LEFT_LEADER)
-        self._left_follower = TalonFX(constants.DT_LEFT_FOLLOWER)
+        if FOLLOWER_MOTORS_PRESENT: 
+            self._left_follower = TalonFX(constants.DT_LEFT_FOLLOWER)
         # Applying a new configuration will erase all other config settings since we start with a blank config
         # so each setting needs to be explicitly set here in the config method
         config = TalonFXConfiguration()
@@ -221,11 +265,12 @@ class DriveTrain(Subsystem):
             ret = self._left_leader.configurator.apply(config)
             if ret == StatusCode.is_ok:
                 break
-
-        for i in range(0, 6):  # Try 5 times
-            ret = self._left_follower.configurator.apply(config)
-            if ret == StatusCode.is_ok:
-                break
+        
+        if FOLLOWER_MOTORS_PRESENT: 
+            for i in range(0, 6):  # Try 5 times
+                ret = self._left_follower.configurator.apply(config)
+                if ret == StatusCode.is_ok:
+                    break
 
         # self._left_follower.set_control(Follower(self._left_leader.device_id, False))
         self._left_leader.sim_state.Orientation = ChassisReference.Clockwise_Positive
@@ -234,14 +279,16 @@ class DriveTrain(Subsystem):
         # )
 
         # Set the left follower to only follow master
-        follow_request = Follower(constants.DT_LEFT_LEADER, False)
-        self._left_follower.set_control(follow_request)
+        if FOLLOWER_MOTORS_PRESENT: 
+            follow_request = Follower(constants.DT_LEFT_LEADER, False)
+            self._left_follower.set_control(follow_request)
 
         self._left_leader.set_position(0)
 
     def __configure_right_side_drive(self) -> None:
         self._right_leader = TalonFX(constants.DT_RIGHT_LEADER)
-        self._right_follower = TalonFX(constants.DT_RIGHT_FOLLOWER)
+        if FOLLOWER_MOTORS_PRESENT: 
+            self._right_follower = TalonFX(constants.DT_RIGHT_FOLLOWER)
         # Applying a new configuration will erase all other config settings since we start with a blank config
         # so each setting needs to be explicitly set here in the config method
         config = TalonFXConfiguration()
@@ -271,11 +318,12 @@ class DriveTrain(Subsystem):
             ret = self._right_leader.configurator.apply(config)
             if ret == StatusCode.is_ok:
                 break
-
-        for i in range(0, 6):  # Try 5 times
-            ret = self._right_follower.configurator.apply(config)
-            if ret == StatusCode.is_ok:
-                break
+        
+        if FOLLOWER_MOTORS_PRESENT: 
+            for i in range(0, 6):  # Try 5 times
+                ret = self._right_follower.configurator.apply(config)
+                if ret == StatusCode.is_ok:
+                    break
 
         # self._right_follower.set_control(Follower(self._right_leader.device_id, False))
         self._right_leader.sim_state.Orientation = (
@@ -284,8 +332,9 @@ class DriveTrain(Subsystem):
         # self._right_follower.sim_state.Orientation = ChassisReference.CounterClockwise_Positive
 
         # Set the right side follower to go with leader
-        follow_request = Follower(constants.DT_RIGHT_LEADER, False)
-        self._right_follower.set_control(follow_request)
+        if FOLLOWER_MOTORS_PRESENT: 
+            follow_request = Follower(constants.DT_RIGHT_LEADER, False)
+            self._right_follower.set_control(follow_request)
 
         self._right_leader.set_position(0)
 

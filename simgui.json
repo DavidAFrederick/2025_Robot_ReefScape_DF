@@ -1,0 +1,31 @@
+{
+  "NTProvider": {
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/AutoChooser": "String Chooser",
+      "/SmartDashboard/Drivetrain": "Subsystem",
+      "/SmartDashboard/Elevator": "Subsystem",
+      "/SmartDashboard/Intake": "Subsystem",
+      "/SmartDashboard/MyField": "Field2d",
+      "/SmartDashboard/Navx": "Gyro",
+      "/SmartDashboard/Turn PID": "PIDController",
+      "/SmartDashboard/Turn-90": "Command",
+      "/SmartDashboard/Turn90": "Command"
+    },
+    "windows": {
+      "/SmartDashboard/AutoChooser": {
+        "window": {
+          "visible": true
+        }
+      },
+      "/SmartDashboard/Drivetrain": {
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  }
+}
