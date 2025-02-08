@@ -19,10 +19,25 @@ from pathplannerlib.auto import (
 )
 from phoenix6 import SignalLogger
 from drivetrain import DriveTrain,  TurnToAnglePID
-from intake import Intake, SetIntake
+from intake import Intake, SetIntake, SetIntakeUsingAnalogLeftTrigger
 from leds import LEDSubsystem, FlashLEDCommand
 ####>>> from vision import VisionSystem
-from elevator import ELEVATOR, MoveELEVATOR
+
+from wpilib import SmartDashboard
+
+from elevatorsubsystem import (
+    Elevator2, 
+    DriveElevatorManual, 
+    MoveElevatorUpXCounts, 
+    AutonomousElevatorCommand, 
+    ResetElevatorCount, 
+    MoveToLowerLimitAndResetCounter,
+    MoveElevatorToSetPointX,
+    MoveElevatorToSetPointL1,
+    MoveElevatorToSetPointL2,
+    MoveElevatorToSetPointL3,
+    MoveElevatorToSetPointL4,
+    )
 
 import constants
 from typing import Tuple, List
@@ -64,8 +79,10 @@ class MyRobot(TimedCommandRobot):
 
         self._leds: LEDSubsystem = LEDSubsystem()
 
-        self._ELEVATOR: ELEVATOR = ELEVATOR()
-        wpilib.SmartDashboard.putData("Elevator", self._ELEVATOR)
+        # Instantiate (create) subsystems
+        self.elevatorSubSys: Elevator2 = Elevator2()
+        SmartDashboard.putData("Elevator", self.elevatorSubSys)
+
 
         # self._vision: VisionSystem = VisionSystem(False, True)
         # self._vision: VisionSystem = VisionSystem(True, True)
@@ -97,7 +114,7 @@ class MyRobot(TimedCommandRobot):
         # Right Trigger April Tag
         # Create a button that maps to the proper integer number (found in driverstation)
         self._right_controller_button: JoystickButton = JoystickButton(
-            self._driver_controller.getHID(), 13  # TODO -- Assign this correct number
+            self._driver_controller.getHID(), 9  # TODO -- Assign this correct number
         )
         # ####>>>self._right_controller_button.whileTrue(
         #     TeleopDriveWithVision(
@@ -123,15 +140,35 @@ class MyRobot(TimedCommandRobot):
         # )
 
         ######################## Partner controller controls #########################
+        # Trigger - Intake conrol  (getLeftTriggerAxis())
 
-                # Right Trigger Climber Up
+        #==(Intake Control)========================
         self._partner_controller.rightTrigger().whileTrue(
-            MoveELEVATOR(self._ELEVATOR, 0.4).withName("ElevatorUp")
+            SetIntake(self._intake, 0.8).withName("Intake In")
         )
-        # Left Trigger Climber Down
         self._partner_controller.leftTrigger().whileTrue(
-            MoveELEVATOR(self._ELEVATOR, -0.4).withName("ElevatorDown")
+            SetIntake(self._intake, -0.8).withName("Intake Out")
         )
+
+        #==(Elevator Control)========================
+        # Bumpers - Elevator Control
+
+        self._partner_controller.rightBumper().whileTrue(
+            DriveElevatorManual(self.elevatorSubSys, 0.4).withName("Elevator Up")
+        )
+        self._partner_controller.leftBumper().whileTrue(
+            DriveElevatorManual(self.elevatorSubSys, -0.4).withName("Elevator Down")
+        )
+
+        # Bind the buttons to the commands
+        self._partner_controller.y().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L1))
+        self._partner_controller.x().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L2))
+        self._partner_controller.b().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L3))
+        self._partner_controller.a().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L4))
+        
+        # self._partner_controller.x().onTrue(MoveElevatorUpXCounts(self.elevatorSubSys, 2))
+        # self._partner_controller.b().onTrue(ResetElevatorCount(self.elevatorSubSys))
+        self._partner_controller.start().onTrue(MoveToLowerLimitAndResetCounter(self.elevatorSubSys))
 
         wpilib.SmartDashboard.putData("Turn90", TurnToAnglePID(self._drivetrain, 90, 3))
         wpilib.SmartDashboard.putData(
@@ -170,24 +207,48 @@ class MyRobot(TimedCommandRobot):
                 ).withName("DefaultDrive")
             )
 
-        self._intake.setDefaultCommand(SetIntake(self._intake))
+        # self._intake.setDefaultCommand(SetIntake(self._intake, 0.2))
+        # self._intake.setDefaultCommand(
+        #     SetIntakeUsingAnalogLeftTrigger(self._intake,self._partner_controller )
+        #     )
+    
+        # Define a default command for each sysystem
+        # self.elevatorSubSys.setDefaultCommand(DriveElevatorManual(self.elevatorSubSys, 0.0))
+
 
     def __configure_autonomous_commands(self) -> None:
         # Register the named commands used by the PathPlanner auto builder
         # These commands have to match exactly in the PathPlanner application
         # as we name them here in the registration
+      
         NamedCommands.registerCommand(
-            "RunIntake", PrintCommand("This is placeholder for a command that runs the intake")
+            "MoveElevatorToSetPointL1",
+            MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(4).withName("Elevator L1"),
+        )
+        NamedCommands.registerCommand(
+            "MoveElevatorToSetPointL2",
+            MoveElevatorToSetPointL2(self.elevatorSubSys).withTimeout(4).withName("Elevator L2"),
+        )
+        NamedCommands.registerCommand(
+            "MoveElevatorToSetPointL3",
+            MoveElevatorToSetPointL3(self.elevatorSubSys).withTimeout(4).withName("Elevator L3"),
+        )
+        NamedCommands.registerCommand(
+            "MoveElevatorToSetPointL4",
+            MoveElevatorToSetPointL4(self.elevatorSubSys).withTimeout(4).withName("Elevator L4"),
         )
 
         # To configure the Autonomous routines use PathPlanner to define the auto routines
         # Then, take all of the path planner created routines and add them to the auto
         # chooser so the drive team can select the starting auto.
         self._auto_chooser: wpilib.SendableChooser = wpilib.SendableChooser()
-        self._auto_chooser.setDefaultOption(
-            "Print Auto String",PrintCommand("This is the auto shooter command string")
-        )
-        self._auto_chooser.addOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))
+        # self._auto_chooser.setDefaultOption(
+        #     "Print Auto String",PrintCommand("This is the auto shooter command string")
+        # )        
+        self._auto_chooser.setDefaultOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
+        self._auto_chooser.addOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))        
+        # self._auto_chooser.addOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))
+        # self._auto_chooser.addOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
 
         wpilib.SmartDashboard.putData("AutoChooser", self._auto_chooser)
 
