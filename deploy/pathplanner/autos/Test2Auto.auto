@@ -5,12 +5,6 @@
     "data": {
       "commands": [
         {
-          "type": "path",
-          "data": {
-            "pathName": "Test2PathPart1"
-          }
-        },
-        {
           "type": "wait",
           "data": {
             "waitTime": 2.0
@@ -25,13 +19,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "TestPath2Part2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "MoveElevatorToSetPointL4"
+            "pathName": "ExamplePath"
           }
         }
       ]

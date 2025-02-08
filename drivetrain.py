@@ -50,8 +50,8 @@ import constants
 
 VISION_KP = 0.012
 FEEDFORWARD = 0.1
-FOLLOWER_MOTORS_PRESENT = False
-# FOLLOWER_MOTORS_PRESENT = True
+# FOLLOWER_MOTORS_PRESENT = False
+FOLLOWER_MOTORS_PRESENT = True
 
 
 class DriveTrain(Subsystem):
@@ -89,6 +89,7 @@ class DriveTrain(Subsystem):
 
         if RobotBase.isSimulation():
             self.__configure_simulation()
+
 
         self._field = Field2d()
         SmartDashboard.putData("MyField", self._field)

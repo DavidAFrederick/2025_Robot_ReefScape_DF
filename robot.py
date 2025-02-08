@@ -20,6 +20,7 @@ from pathplannerlib.auto import (
 from phoenix6 import SignalLogger
 from drivetrain import DriveTrain,  TurnToAnglePID
 from intake import Intake, SetIntake, SetIntakeUsingAnalogLeftTrigger
+from wrist import Wrist, SetWristAngle
 from leds import LEDSubsystem, FlashLEDCommand
 ####>>> from vision import VisionSystem
 

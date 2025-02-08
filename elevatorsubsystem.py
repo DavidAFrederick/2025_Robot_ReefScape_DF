@@ -232,12 +232,11 @@ class MoveElevatorToSetPointX(Command):
         self.target_position = target_position
         self.addRequirements(self.elevator)
         self.current_position = 0
-        # print ("Move Elevator To Set Point X Command Instantiated")
 
     def initialize(self):
+        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<<")
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
-        # print ("Move Elevator To Set Point X Command")
         
         
     def execute(self):
@@ -251,7 +250,7 @@ class MoveElevatorToSetPointX(Command):
     def isFinished(self) -> bool:      
         stopBand = 2
         return ( abs(self.target_position - self.current_position) < stopBand)
-  
+    
     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
         self.elevator.DriveElevatorSpeed(0)
 
@@ -261,15 +260,16 @@ class MoveElevatorToSetPointL1(Command):
     def __init__(self, elevator: Elevator2):
         self.elevator = elevator
         self.addRequirements(self.elevator)
-        print ("Move Elevator to L1")
 
     def initialize(self):
-        pass
+        print ("Move Elevator to L1 ==  Started")
 
     def execute(self):
         MoveElevatorToSetPointX(self.elevator, constants.L1)
 
     def isFinished(self) -> bool:     # This command finishes after one run
+        print ("Move Elevator to L1 ---  Finished  !!!!!! ")
+
         return True
 
 #==================================================================================
@@ -278,10 +278,10 @@ class MoveElevatorToSetPointL2(Command):
     def __init__(self, elevator: Elevator2):
         self.elevator = elevator
         self.addRequirements(self.elevator)
-        print ("Move Elevator to L2")
 
     def initialize(self):
-        pass
+        print ("Move Elevator to L2")
+
 
     def execute(self):
         MoveElevatorToSetPointX(self.elevator, constants.L2)
@@ -294,10 +294,9 @@ class MoveElevatorToSetPointL3(Command):
     def __init__(self, elevator: Elevator2):
         self.elevator = elevator
         self.addRequirements(self.elevator)
-        print ("Move Elevator to L3")
 
     def initialize(self):
-        pass
+        print ("Move Elevator to L3")
 
     def execute(self):
         MoveElevatorToSetPointX(self.elevator, constants.L3)
@@ -310,10 +309,9 @@ class MoveElevatorToSetPointL4(Command):
     def __init__(self, elevator: Elevator2):
         self.elevator = elevator
         self.addRequirements(self.elevator)
-        print ("Move Elevator to L4")
 
     def initialize(self):
-            pass
+        print ("Move Elevator to L4")
 
     def execute(self):
         MoveElevatorToSetPointX(self.elevator, constants.L4)
