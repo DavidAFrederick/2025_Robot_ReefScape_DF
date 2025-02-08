@@ -22,7 +22,8 @@
       "/SmartDashboard/Navx": "Gyro",
       "/SmartDashboard/Turn PID": "PIDController",
       "/SmartDashboard/Turn-90": "Command",
-      "/SmartDashboard/Turn90": "Command"
+      "/SmartDashboard/Turn90": "Command",
+      "/SmartDashboard/Wrist": "Subsystem"
     },
     "windows": {
       "/SmartDashboard/AutoChooser": {

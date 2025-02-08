@@ -21,8 +21,8 @@ class Wrist(Subsystem):
 
         ##  Absolute Encoder Angle - Example code from Crescendo
     def __configure_wrist_encoder(self) -> DutyCycleEncoder:
-        encoder: DutyCycleEncoder = DutyCycleEncoder(constants.WRIST_ANGLE_ENCODER)  # DIO port [0]
-        return encoder
+        wrist_encoder: DutyCycleEncoder = DutyCycleEncoder(constants.WRIST_ANGLE_ENCODER)  # DIO port [0]
+        return wrist_encoder
 
 
     def drive_motor(self, speed: float):
@@ -32,42 +32,58 @@ class Wrist(Subsystem):
     def stop_motor(self) -> None:
         self.Wrist_Motor.set(TalonSRXControlMode.PercentOutput, 0)
 
+    def getAbsolutePosition(self) -> float:
+        return (360 * self._wrist_angle.get())
+        
+
     def periodic(self) -> None:
         ##  Absolute Encoder Angle - Example code from Crescendo
         if self._wrist_angle.isConnected():
             SmartDashboard.putNumber(
-                "Encoder Pos", self._wrist_angle.getAbsolutePosition()
+                "Encoder Pos", self.getAbsolutePosition()
             )
 
-    ##  Absolute Encoder Angle - Example code from Crescendo
-
-    def move_ramp_to_location(self) -> None:
+    def move_wrist_to_angle(self, target_angle: float) -> None:
         speed = 0
-        curr_location = self._shooter_ramp_angle.getAbsolutePosition()
-        if curr_location < (self._curr_location.value[LOCATION] - 0.001):
-            # Ramp needs to move up
+        current_angle = self.getAbsolutePosition()
+        if (current_angle <= target_angle):
             speed = 1
-        elif curr_location > (self._curr_location.value[LOCATION] - 0.001):
-            # Ramp needs to move down
+        elif (current_angle > target_angle):
             speed = -1
         else:
             speed = 0
-        self._shooter_ramp.set(ControlMode.PercentOutput, speed)
+        self.Wrist_Motor.set(ControlMode.PercentOutput, speed)
 
+    def wrist_at_angle(self, target_angle: float) -> bool:
+        current_difference = (self._wrist_angle.getAbsolutePosition() - target_angle)
+        SmartDashboard.putNumber("Wrist angle error", current_difference)
+        return abs(current_difference) < 1   #  TBD - tune this number
 
-
-    def shooter_at_angle(self) -> bool:
-        curr_diff = (
-            self._shooter_ramp_angle.getAbsolutePosition()
-            - self._curr_location.value[LOCATION]
-        )
-        SmartDashboard.putNumber("ShooterDiff", curr_diff)
-        return abs(curr_diff) < 0.0015
-
+#======================================================================
 class SetWristAngle(Command):
     def __init__(self, Wrist: Wrist, angle: float):
         self._Wrist = Wrist
-        self.speed = angle
+        self.angle = angle
+        self.addRequirements(self._Wrist)
+
+    def initialize(self):
+        pass 
+
+    def execute(self):
+        self._Wrist.move_wrist_to_angle(self.angle)
+       
+    def isFinished(self) -> bool:
+        return self._Wrist.wrist_at_angle(self.angle)
+    
+    def end(self, interrupted: bool):
+        self._Wrist.stop_motor()
+
+#=========================================
+
+class ManualControlWristAngle(Command):
+    def __init__(self, Wrist: Wrist, speed: float):
+        self._Wrist = Wrist
+        self.speed = speed
         self.addRequirements(self._Wrist)
 
     def initialize(self):
@@ -77,7 +93,7 @@ class SetWristAngle(Command):
         self._Wrist.drive_motor(self.speed)
        
     def isFinished(self) -> bool:
-        return False
+        return True
     
     def end(self, interrupted: bool):
         self._Wrist.stop_motor()

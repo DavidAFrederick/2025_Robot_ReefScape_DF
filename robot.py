@@ -40,6 +40,8 @@ from elevatorsubsystem import (
     MoveElevatorToSetPointL4,
     )
 
+from wrist import Wrist, ManualControlWristAngle
+
 import constants
 from typing import Tuple, List
 
@@ -83,6 +85,9 @@ class MyRobot(TimedCommandRobot):
         # Instantiate (create) subsystems
         self.elevatorSubSys: Elevator2 = Elevator2()
         SmartDashboard.putData("Elevator", self.elevatorSubSys)
+
+        self.wristSubSys: Wrist = Wrist()
+        SmartDashboard.putData("Wrist", self.wristSubSys)
 
 
         # self._vision: VisionSystem = VisionSystem(False, True)
@@ -216,6 +221,8 @@ class MyRobot(TimedCommandRobot):
         # Define a default command for each sysystem
         # self.elevatorSubSys.setDefaultCommand(DriveElevatorManual(self.elevatorSubSys, 0.0))
 
+        # Default command for wrist
+        self.wristSubSys.setDefaultCommand(ManualControlWristAngle(self.wristSubSys, self._partner_controller.getLeftY() ))
 
     def __configure_autonomous_commands(self) -> None:
         # Register the named commands used by the PathPlanner auto builder
