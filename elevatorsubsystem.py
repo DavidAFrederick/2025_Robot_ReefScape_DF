@@ -72,6 +72,7 @@ class Elevator2(Subsystem):
         self._motor_percent_out: DutyCycleOut = DutyCycleOut(0)
         self._motor_percent_out.output = speed
         self._elevator_motor.set_control(self._motor_percent_out)
+        print ("Moving: ", speed)
 
     def get_elevator_encoder_count(self) -> float:
         self._elevator_motor.get_rotor_position()
@@ -234,7 +235,7 @@ class MoveElevatorToSetPointX(Command):
         self.current_position = 0
 
     def initialize(self):
-        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<<")
+        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
         
@@ -246,6 +247,73 @@ class MoveElevatorToSetPointX(Command):
             self.elevator.DriveElevatorSpeed(1)
         else:
             self.elevator.DriveElevatorSpeed(-1)
+        print ("Executing", self.target_position)
+
+    def isFinished(self) -> bool:      
+        stopBand = 2
+        return ( abs(self.target_position - self.current_position) < stopBand)
+    
+    def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
+        self.elevator.DriveElevatorSpeed(0)
+
+#==================================================================================
+
+class MoveElevatorToSetPoint50(Command):
+    def __init__(self, elevator: Elevator2):
+        self.elevator = elevator
+        # self.target_position = target_position
+        self.target_position = 50
+        self.addRequirements(self.elevator)
+        self.current_position = 0
+
+    def initialize(self):
+        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
+        # Get the current elevator position
+        self.current_position = self.elevator.get_elevator_encoder_count()
+        
+        
+    def execute(self):
+        self.current_position = self.elevator.get_elevator_encoder_count()
+
+        if (self.current_position > self.target_position):          # Need to move down (FORWARD ON REAL ROBOT)
+            self.elevator.DriveElevatorSpeed(1)
+        else:
+            self.elevator.DriveElevatorSpeed(-1)
+        print ("Executing", self.target_position)
+
+    def isFinished(self) -> bool:      
+        stopBand = 2
+        return ( abs(self.target_position - self.current_position) < stopBand)
+    
+    def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
+        self.elevator.DriveElevatorSpeed(0)
+
+#==================================================================================
+#==================================================================================
+#==================================================================================
+
+class MoveElevatorToSetPoint20(Command):
+    def __init__(self, elevator: Elevator2):
+        self.elevator = elevator
+        # self.target_position = target_position
+        self.target_position = 20
+        self.addRequirements(self.elevator)
+        self.current_position = 0
+
+    def initialize(self):
+        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
+        # Get the current elevator position
+        self.current_position = self.elevator.get_elevator_encoder_count()
+        
+        
+    def execute(self):
+        self.current_position = self.elevator.get_elevator_encoder_count()
+
+        if (self.current_position > self.target_position):          # Need to move down (FORWARD ON REAL ROBOT)
+            self.elevator.DriveElevatorSpeed(1)
+        else:
+            self.elevator.DriveElevatorSpeed(-1)
+        print ("Executing", self.target_position)
 
     def isFinished(self) -> bool:      
         stopBand = 2

@@ -39,6 +39,8 @@ from elevatorsubsystem import (
     MoveElevatorToSetPointL2,
     MoveElevatorToSetPointL3,
     MoveElevatorToSetPointL4,
+    MoveElevatorToSetPoint20,
+    MoveElevatorToSetPoint50,
     )
 
 from wrist import Wrist, ManualControlWristAngle
@@ -229,22 +231,38 @@ class MyRobot(TimedCommandRobot):
         # Register the named commands used by the PathPlanner auto builder
         # These commands have to match exactly in the PathPlanner application
         # as we name them here in the registration
-      
+        #
+
+        # NamedCommands.registerCommand(
+        #     "ExampleAuto",
+        #     MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(16).withName("Elevator L1"),
+        # )
+
+        NamedCommands.registerCommand(
+            "MoveElevatorToSetPoint20",
+            MoveElevatorToSetPoint20(self.elevatorSubSys).withTimeout(16).withName("Elevator L20"),
+        )
+
+        NamedCommands.registerCommand(
+            "MoveElevatorToSetPoint50",
+            MoveElevatorToSetPoint50(self.elevatorSubSys).withTimeout(16).withName("Elevator L1-50"),
+        )
+
         NamedCommands.registerCommand(
             "MoveElevatorToSetPointL1",
-            MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(4).withName("Elevator L1"),
+            MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(16).withName("Elevator L1"),
         )
         NamedCommands.registerCommand(
             "MoveElevatorToSetPointL2",
-            MoveElevatorToSetPointL2(self.elevatorSubSys).withTimeout(4).withName("Elevator L2"),
+            MoveElevatorToSetPointL2(self.elevatorSubSys).withTimeout(14).withName("Elevator L2"),
         )
         NamedCommands.registerCommand(
             "MoveElevatorToSetPointL3",
-            MoveElevatorToSetPointL3(self.elevatorSubSys).withTimeout(4).withName("Elevator L3"),
+            MoveElevatorToSetPointL3(self.elevatorSubSys).withTimeout(14).withName("Elevator L3"),
         )
         NamedCommands.registerCommand(
             "MoveElevatorToSetPointL4",
-            MoveElevatorToSetPointL4(self.elevatorSubSys).withTimeout(4).withName("Elevator L4"),
+            MoveElevatorToSetPointL4(self.elevatorSubSys).withTimeout(14).withName("Elevator L4"),
         )
 
         # To configure the Autonomous routines use PathPlanner to define the auto routines
@@ -254,9 +272,9 @@ class MyRobot(TimedCommandRobot):
         # self._auto_chooser.setDefaultOption(
         #     "Print Auto String",PrintCommand("This is the auto shooter command string")
         # )        
-        self._auto_chooser.setDefaultOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
-        self._auto_chooser.addOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))        
-        # self._auto_chooser.addOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))
+        self._auto_chooser.setDefaultOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))
+        self._auto_chooser.addOption("Test2PathChooser", PathPlannerAuto("Test2PathChooser"))        
+        # self._auto_chooser.setDefaultOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
         # self._auto_chooser.addOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
 
         wpilib.SmartDashboard.putData("AutoChooser", self._auto_chooser)
