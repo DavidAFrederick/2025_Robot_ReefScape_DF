@@ -35,12 +35,9 @@ from elevatorsubsystem import (
     ResetElevatorCount, 
     MoveToLowerLimitAndResetCounter,
     MoveElevatorToSetPointX,
-    MoveElevatorToSetPointL1,
-    MoveElevatorToSetPointL2,
-    MoveElevatorToSetPointL3,
-    MoveElevatorToSetPointL4,
-    MoveElevatorToSetPoint20,
-    MoveElevatorToSetPoint50,
+    Move_Elevator_L1,  
+    Move_Elevator_L4,      
+    Move_Elevator_CS,
     )
 
 from wrist import Wrist, SetWristAngle, ManualControlWristAngle, SetWristAngle
@@ -182,10 +179,10 @@ class MyRobot(TimedCommandRobot):
         # self._partner_controller.b().onTrue(ResetElevatorCount(self.elevatorSubSys))
         self._partner_controller.start().onTrue(MoveToLowerLimitAndResetCounter(self.elevatorSubSys))
 
-        wpilib.SmartDashboard.putData("Turn90", TurnToAnglePID(self._drivetrain, 90, 3))
-        wpilib.SmartDashboard.putData(
-            "Turn-90", TurnToAnglePID(self._drivetrain, -90, 3)
-        )
+        # wpilib.SmartDashboard.putData("Turn90", TurnToAnglePID(self._drivetrain, 90, 3))
+        # wpilib.SmartDashboard.putData(
+        #      "Turn-90", TurnToAnglePID(self._drivetrain, -90, 3)
+        # )
 
     def __configure_default_commands(self) -> None:
         # Setup the default commands for subsystems
@@ -235,52 +232,30 @@ class MyRobot(TimedCommandRobot):
         # Register the named commands used by the PathPlanner auto builder
         # These commands have to match exactly in the PathPlanner application
         # as we name them here in the registration
-        #
-
-        # NamedCommands.registerCommand(
-        #     "ExampleAuto",
-        #     MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(16).withName("Elevator L1"),
-        # )
 
         NamedCommands.registerCommand(
-            "MoveElevatorToSetPoint20",
-            MoveElevatorToSetPoint20(self.elevatorSubSys).withTimeout(16).withName("Elevator L20"),
+            "Move_Elevator_L1",
+            Move_Elevator_L1(self.elevatorSubSys).withTimeout(5).withName("Elevator L1"),
         )
 
         NamedCommands.registerCommand(
-            "MoveElevatorToSetPoint50",
-            MoveElevatorToSetPoint50(self.elevatorSubSys).withTimeout(16).withName("Elevator L1-50"),
+            "Move_Elevator_L4",
+            Move_Elevator_L4(self.elevatorSubSys).withTimeout(5).withName("Elevator L4"),
         )
 
         NamedCommands.registerCommand(
-            "MoveElevatorToSetPointL1",
-            MoveElevatorToSetPointL1(self.elevatorSubSys).withTimeout(16).withName("Elevator L1"),
+            "Move_Elevator_CS",
+            Move_Elevator_CS(self.elevatorSubSys).withTimeout(5).withName("Elevator CS"),
         )
-        NamedCommands.registerCommand(
-            "MoveElevatorToSetPointL2",
-            MoveElevatorToSetPointL2(self.elevatorSubSys).withTimeout(14).withName("Elevator L2"),
-        )
-        NamedCommands.registerCommand(
-            "MoveElevatorToSetPointL3",
-            MoveElevatorToSetPointL3(self.elevatorSubSys).withTimeout(14).withName("Elevator L3"),
-        )
-        NamedCommands.registerCommand(
-            "MoveElevatorToSetPointL4",
-            MoveElevatorToSetPointL4(self.elevatorSubSys).withTimeout(14).withName("Elevator L4"),
-        )
+
+
 
         # To configure the Autonomous routines use PathPlanner to define the auto routines
         # Then, take all of the path planner created routines and add them to the auto
         # chooser so the drive team can select the starting auto.
         self._auto_chooser: wpilib.SendableChooser = wpilib.SendableChooser()
-        # self._auto_chooser.setDefaultOption(
-        #     "Print Auto String",PrintCommand("This is the auto shooter command string")
-        # )        
-        self._auto_chooser.setDefaultOption("ExampleAuto", PathPlannerAuto("ExampleAuto"))
-        self._auto_chooser.addOption("Test2PathChooser", PathPlannerAuto("Test2PathChooser"))        
-        # self._auto_chooser.setDefaultOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
-        # self._auto_chooser.addOption("Test2PathChooser", PathPlannerAuto("Test2Auto"))
-
+        self._auto_chooser.setDefaultOption("L1-CoralStation", PathPlannerAuto("L1-CoralStation"))
+        self._auto_chooser.addOption("L4-Stop", PathPlannerAuto("L4-Stop"))        
         wpilib.SmartDashboard.putData("AutoChooser", self._auto_chooser)
 
     def __configure_led_triggers(self) -> None:
