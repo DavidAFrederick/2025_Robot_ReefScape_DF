@@ -5,10 +5,12 @@ from phoenix5 import TalonSRX, TalonSRXConfiguration, ControlMode, TalonSRXContr
 import constants
 from commands2.button import CommandXboxController
 
+WRIST_MOVE_SPEED = 0.3
+WRIST_ALLOWED_ANGLE_ERROR = 3
 
 class Wrist(Subsystem):
     """
-    Test class for shooter prototype
+    Wrist Class
     """
 
     def __init__(self):
@@ -37,27 +39,28 @@ class Wrist(Subsystem):
         
 
     def periodic(self) -> None:
-        ##  Absolute Encoder Angle - Example code from Crescendo
         if self._wrist_angle.isConnected():
             SmartDashboard.putNumber(
-                "Encoder Pos", self.getAbsolutePosition()
+                "Wrist Encoder Pos", self.getAbsolutePosition()
             )
 
-    def move_wrist_to_angle(self, target_angle: float) -> None:
+    def move_wrist_toward_target_angle(self, target_angle: float) -> None:
         speed = 0
         current_angle = self.getAbsolutePosition()
-        if (current_angle <= target_angle):
-            speed = 1
+        
+        if (current_angle > 300):     # Handle the case where the wrist is above zero
+            speed = -WRIST_MOVE_SPEED
+        elif (current_angle <= target_angle):
+            speed = -WRIST_MOVE_SPEED
         elif (current_angle > target_angle):
-            speed = -1
+            speed = WRIST_MOVE_SPEED
         else:
             speed = 0
         self.Wrist_Motor.set(ControlMode.PercentOutput, speed)
 
     def wrist_at_angle(self, target_angle: float) -> bool:
-        current_difference = (self._wrist_angle.getAbsolutePosition() - target_angle)
-        SmartDashboard.putNumber("Wrist angle error", current_difference)
-        return abs(current_difference) < 1   #  TBD - tune this number
+        current_difference = (self.getAbsolutePosition() - target_angle)
+        return abs(current_difference) < WRIST_ALLOWED_ANGLE_ERROR   #  TBD - tune this number
 
 #======================================================================
 class SetWristAngle(Command):
@@ -70,7 +73,7 @@ class SetWristAngle(Command):
         pass 
 
     def execute(self):
-        self._Wrist.move_wrist_to_angle(self.angle)
+        self._Wrist.move_wrist_toward_target_angle(self.angle)
        
     def isFinished(self) -> bool:
         return self._Wrist.wrist_at_angle(self.angle)
@@ -81,19 +84,19 @@ class SetWristAngle(Command):
 #=========================================
 
 class ManualControlWristAngle(Command):
-    def __init__(self, Wrist: Wrist, speed: float):
+    def __init__(self, Wrist: Wrist, controller: CommandXboxController):
         self._Wrist = Wrist
-        self.speed = speed
+        self.controller = controller
         self.addRequirements(self._Wrist)
 
     def initialize(self):
         pass 
 
     def execute(self):
-        self._Wrist.drive_motor(self.speed)
+        self._Wrist.drive_motor(-self.controller.getLeftY())
        
     def isFinished(self) -> bool:
-        return True
+        return False
     
     def end(self, interrupted: bool):
         self._Wrist.stop_motor()

@@ -8,7 +8,7 @@ from commands2.button import CommandXboxController
 
 class Intake(Subsystem):
     """
-    Test class for shooter prototype
+    Intake Class
     """
 
     def __init__(self):

@@ -43,7 +43,7 @@ from elevatorsubsystem import (
     MoveElevatorToSetPoint50,
     )
 
-from wrist import Wrist, ManualControlWristAngle
+from wrist import Wrist, SetWristAngle, ManualControlWristAngle, SetWristAngle
 
 import constants
 from typing import Tuple, List
@@ -108,8 +108,11 @@ class MyRobot(TimedCommandRobot):
         self._current_pose = Pose2d()
 
     def __configure_button_bindings(self) -> None:
-        # Driver controller controls first
-        ####>> self._driver_controller.a().whileTrue(IntakeCommand(self._intake))
+
+        ######################## Driver controller controls #########################
+
+        self._driver_controller.povUp().onTrue(SetWristAngle(self.wristSubSys, 10))
+        self._driver_controller.povDown().onTrue(SetWristAngle(self.wristSubSys, 60))
 
         # Left Button Note Aim
         # The WPILIB enum and our controller mapping are different.  On the Zorro
@@ -225,7 +228,8 @@ class MyRobot(TimedCommandRobot):
         # self.elevatorSubSys.setDefaultCommand(DriveElevatorManual(self.elevatorSubSys, 0.0))
 
         # Default command for wrist
-        self.wristSubSys.setDefaultCommand(ManualControlWristAngle(self.wristSubSys, self._partner_controller.getLeftY() ))
+        self.wristSubSys.setDefaultCommand(ManualControlWristAngle(self.wristSubSys, self._driver_controller ))
+
 
     def __configure_autonomous_commands(self) -> None:
         # Register the named commands used by the PathPlanner auto builder
