@@ -91,6 +91,7 @@ ELEVATOR_SEEK_LOWER_LIMIT_SPEED = -0.3
 
 
 # Elevator Stopping positions
+L0 = 0
 L1 = 20
 L2 = 100
 L3 = 175

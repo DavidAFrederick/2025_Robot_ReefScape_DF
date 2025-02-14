@@ -11,7 +11,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Move_Backward_5_Feet"
+                  "pathName": "RT1PTA"
                 }
               },
               {
@@ -19,14 +19,14 @@
                 "data": {
                   "name": "Move_Elevator_L4"
                 }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 2.0
-                }
               }
             ]
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RT1TN1"
           }
         },
         {
@@ -36,7 +36,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Move_Forward_5_Feet"
+                  "pathName": "RT1PTB"
                 }
               },
               {
@@ -44,26 +44,44 @@
                 "data": {
                   "name": "Move_Elevator_L1"
                 }
-              },
-              {
-                "type": "wait",
-                "data": {
-                  "waitTime": 2.0
-                }
               }
             ]
           }
         },
         {
-          "type": "named",
+          "type": "path",
           "data": {
-            "name": "AutonomouseModeComplete"
+            "pathName": "RT1TN2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RT1PTC"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RT1TN3"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RT1PTD"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "RT1TN4"
           }
         }
       ]
     }
   },
   "resetOdom": true,
-  "folder": "Test1",
+  "folder": "SquarePath",
   "choreoAuto": false
 }

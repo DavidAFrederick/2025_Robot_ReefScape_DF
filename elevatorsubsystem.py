@@ -302,7 +302,7 @@ class Move_Elevator_L1(Command):
         self.stopBand = 2
 
     def initialize(self):
-        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
+        print ("Move Elevator To Set Point L1 Command ")
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
                 
@@ -333,7 +333,7 @@ class Move_Elevator_L4(Command):
         self.stopBand = 2
 
     def initialize(self):
-        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
+        print ("Move Elevator To Set Point L3 Command ")
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
                 
@@ -364,7 +364,7 @@ class Move_Elevator_CS(Command):
         self.stopBand = 2
 
     def initialize(self):
-        print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
+        print ("Move Elevator To Set Point Coral Station Command ")
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
                 
@@ -382,6 +382,26 @@ class Move_Elevator_CS(Command):
     
     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
         self.elevator.DriveElevatorSpeed(0)
+
+#==================================================================================
+
+#==================================================================================
+class AutonomouseModeComplete(Command):
+    def __init__(self, elevator: Elevator2):
+        self.elevator = elevator
+        self.addRequirements(self.elevator)
+
+    def initialize(self):
+        pass
+                
+    def execute(self):
+        pass
+
+    def isFinished(self) -> bool:      
+        return True
+    
+    def end(self, interrupted: bool):   
+        print ("Autonomous Complete <=============")
 
 #==================================================================================
 

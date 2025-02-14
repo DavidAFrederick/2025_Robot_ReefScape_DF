@@ -19,7 +19,7 @@ from pathplannerlib.auto import (
     PathPlannerAuto,
 )
 from phoenix6 import SignalLogger
-from drivetrain import DriveTrain,  TurnToAnglePID
+from drivetrain import DriveTrain,  TurnToAnglePID, AutonomouseModeComplete
 from intake import Intake, SetIntake, SetIntakeUsingAnalogLeftTrigger
 from wrist import Wrist, SetWristAngle
 from leds import LEDSubsystem, FlashLEDCommand
@@ -249,12 +249,15 @@ class MyRobot(TimedCommandRobot):
         )
 
 
+        NamedCommands.registerCommand(
+            "AutonomouseModeComplete", AutonomouseModeComplete(self._drivetrain))
 
         # To configure the Autonomous routines use PathPlanner to define the auto routines
         # Then, take all of the path planner created routines and add them to the auto
         # chooser so the drive team can select the starting auto.
         self._auto_chooser: wpilib.SendableChooser = wpilib.SendableChooser()
-        self._auto_chooser.setDefaultOption("L1-CoralStation", PathPlannerAuto("L1-CoralStation"))
+        self._auto_chooser.setDefaultOption("DSquareRT", PathPlannerAuto("SquareRT"))
+        self._auto_chooser.addOption("L1-CoralStation", PathPlannerAuto("L1-CoralStation"))
         self._auto_chooser.addOption("L4-Stop", PathPlannerAuto("L4-Stop"))        
         wpilib.SmartDashboard.putData("AutoChooser", self._auto_chooser)
 

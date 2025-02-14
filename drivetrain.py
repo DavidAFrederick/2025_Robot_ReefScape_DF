@@ -760,6 +760,7 @@ class DriveMMInches(Command):
     def end(self, interrupted: bool):
         self._dt.drive_velocity_volts(0, 0)
 
+#==================================================================================
 
 class TeleopDriveWithVision(Command):
     def __init__(
@@ -823,3 +824,24 @@ class TurnToAnglePID(PIDCommand):
     def isFinished(self) -> bool:
         # End when the controller is at the reference.
         return self.getController().atSetpoint()
+
+#==================================================================================
+class AutonomouseModeComplete(Command):
+    def __init__(self, drivetrain: DriveTrain):
+        self.drivetrain = drivetrain
+        self.addRequirements(self.drivetrain)
+
+    def initialize(self):
+        pass
+                
+    def execute(self):
+        pass
+
+    def isFinished(self) -> bool:      
+        return True
+    
+    def end(self, interrupted: bool):   
+        # self.drivetrain.drive_teleop(self.drivetrain, 0.0, 0.0 )
+        print ("Autonomous Complete <=============")
+
+#==================================================================================
