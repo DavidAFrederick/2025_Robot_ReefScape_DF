@@ -5,15 +5,15 @@
     "data": {
       "commands": [
         {
+          "type": "path",
+          "data": {
+            "pathName": "Move_Backward_5_Feet"
+          }
+        },
+        {
           "type": "sequential",
           "data": {
             "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Turn_Left_90_Degrees"
-                }
-              },
               {
                 "type": "named",
                 "data": {
@@ -21,12 +21,6 @@
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "wait",
-          "data": {
-            "waitTime": 4.0
           }
         }
       ]

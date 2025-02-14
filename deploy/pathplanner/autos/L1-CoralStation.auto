@@ -26,7 +26,7 @@
         {
           "type": "wait",
           "data": {
-            "waitTime": 2.0
+            "waitTime": 1.0
           }
         },
         {
@@ -39,6 +39,12 @@
           "type": "wait",
           "data": {
             "waitTime": 2.0
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Move_Backward_5_Feet"
           }
         }
       ]
