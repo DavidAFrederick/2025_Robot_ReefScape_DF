@@ -20,9 +20,9 @@ from pathplannerlib.auto import (
 )
 from phoenix6 import SignalLogger
 from drivetrain import DriveTrain,  TurnToAnglePID, AutonomouseModeComplete
-from intake import Intake, SetIntake, SetIntakeUsingAnalogLeftTrigger
+from intake import Intake, SetIntake, SetIntakeUsingAnalogLeftTrigger, SetIntakeSpeedandTime
 from wrist import Wrist, SetWristAngle
-from leds import LEDSubsystem, FlashLEDCommand
+# from leds import LEDSubsystem, FlashLEDCommand
 ####>>> from vision import VisionSystem
 
 from wpilib import SmartDashboard
@@ -72,26 +72,21 @@ class MyRobot(TimedCommandRobot):
         if RobotBase.isSimulation():
             DriverStation.silenceJoystickConnectionWarning(True)
 
-        # Instantiate any subystems
+        #======== Instantiate any subystems  =============================
         self._drivetrain: DriveTrain = DriveTrain()
         wpilib.SmartDashboard.putData("Drivetrain", self._drivetrain)
 
         self._intake: Intake = Intake()
         wpilib.SmartDashboard.putData("Intake", self._intake)
 
-
-        self._leds: LEDSubsystem = LEDSubsystem()
-
-        # Instantiate (create) subsystems
         self.elevatorSubSys: Elevator2 = Elevator2()
         SmartDashboard.putData("Elevator", self.elevatorSubSys)
 
         self.wristSubSys: Wrist = Wrist()
         SmartDashboard.putData("Wrist", self.wristSubSys)
 
-
-        # self._vision: VisionSystem = VisionSystem(False, True)
         # self._vision: VisionSystem = VisionSystem(True, True)
+        # self._leds: LEDSubsystem = LEDSubsystem()
 
         self.__configure_default_commands()
 
@@ -108,48 +103,12 @@ class MyRobot(TimedCommandRobot):
 
         ######################## Driver controller controls #########################
 
+        #   Driver Joysticks used for driving
+
         self._driver_controller.povUp().onTrue(SetWristAngle(self.wristSubSys, 10))
         self._driver_controller.povDown().onTrue(SetWristAngle(self.wristSubSys, 60))
 
-        # Left Button Note Aim
-        # The WPILIB enum and our controller mapping are different.  On the Zorro
-        # controller, the "right bumper" according to WPILib is actually the left
-        # button that would be by a trigger
-        ####>>>> self._driver_controller.rightBumper().whileTrue(
-        #     TeleopDriveWithVision(
-        #         self._drivetrain, self._vision.get_note_yaw, self._driver_controller
-        #     ).withName("Note Driving")
-        # )
-        # Right Trigger April Tag
-        # Create a button that maps to the proper integer number (found in driverstation)
-        self._right_controller_button: JoystickButton = JoystickButton(
-            self._driver_controller.getHID(), 9  # TODO -- Assign this correct number
-        )
-        # ####>>>self._right_controller_button.whileTrue(
-        #     TeleopDriveWithVision(
-        #         self._drivetrain, self._vision.get_tag_yaw, self._driver_controller
-        #     ).withName("Tag Driving")
-        # )
-
-        # self._driver_controller.rightBumper().whileTrue(
-        #     RunCommand(
-        #         lambda: self._drivetrain.drive_teleop(
-        #             self._driver_controller.getLeftY(),
-        #             -self._driver_controller.getRightX(),
-        #         ),
-        #         self._drivetrain,
-        #     ).withName("FlippedControls")
-        # )
-
-        # wpilib.SmartDashboard.putData(
-        #     "Turn-90",
-        #     self._drivetrain.configure_turn_pid(-90).andThen(
-        #         self._drivetrain.turn_with_pid().withName("TurnTo -90"),
-        #     ),
-        # )
-
         ######################## Partner controller controls #########################
-        # Trigger - Intake conrol  (getLeftTriggerAxis())
 
         #==(Intake Control)========================
         self._partner_controller.rightTrigger().whileTrue(
@@ -158,6 +117,9 @@ class MyRobot(TimedCommandRobot):
         self._partner_controller.leftTrigger().whileTrue(
             SetIntake(self._intake, -0.8).withName("Intake Out")
         )
+
+        self._partner_controller.povUp().onTrue(SetIntakeSpeedandTime(self._intake, 1, 2))   # push out a coral at 100% speed for 2 seconds
+        self._partner_controller.povDown().onTrue(SetIntakeSpeedandTime(self._intake, -1, 2))  # pull in a coral
 
         #==(Elevator Control)========================
         # Bumpers - Elevator Control
@@ -175,14 +137,9 @@ class MyRobot(TimedCommandRobot):
         self._partner_controller.b().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L3))
         self._partner_controller.a().onTrue(MoveElevatorToSetPointX(self.elevatorSubSys, constants.L4))
         
-        # self._partner_controller.x().onTrue(MoveElevatorUpXCounts(self.elevatorSubSys, 2))
-        # self._partner_controller.b().onTrue(ResetElevatorCount(self.elevatorSubSys))
         self._partner_controller.start().onTrue(MoveToLowerLimitAndResetCounter(self.elevatorSubSys))
 
-        # wpilib.SmartDashboard.putData("Turn90", TurnToAnglePID(self._drivetrain, 90, 3))
-        # wpilib.SmartDashboard.putData(
-        #      "Turn-90", TurnToAnglePID(self._drivetrain, -90, 3)
-        # )
+    # ====== (Configure default commands )=======================================
 
     def __configure_default_commands(self) -> None:
         # Setup the default commands for subsystems
@@ -216,12 +173,10 @@ class MyRobot(TimedCommandRobot):
                 ).withName("DefaultDrive")
             )
 
-        # self._intake.setDefaultCommand(SetIntake(self._intake, 0.2))
         # self._intake.setDefaultCommand(
         #     SetIntakeUsingAnalogLeftTrigger(self._intake,self._partner_controller )
         #     )
     
-        # Define a default command for each sysystem
         # self.elevatorSubSys.setDefaultCommand(DriveElevatorManual(self.elevatorSubSys, 0.0))
 
         # Default command for wrist
