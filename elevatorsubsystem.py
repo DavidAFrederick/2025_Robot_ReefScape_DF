@@ -22,10 +22,14 @@ class Elevator2(Subsystem):
 
     def __init__(self) -> None:
         super().__init__()         # Call the parent's (Super) initialization function
-
         # Configure the motor
         self._configure_elevator_motor_FX()
         print ("Elevator  Subsystem Initialization complete")
+        
+        if self.elevator_at_bottom():
+            self.Elevator_started_at_bottom = True  # Remember if elevator started at the bottom
+        else:
+            self.Elevator_started_at_bottom = False 
 
 
     def _configure_elevator_motor_FX(self) -> None:
@@ -84,28 +88,26 @@ class Elevator2(Subsystem):
 
     def get_motor_current(self) -> float:
         return self._elevator_motor.get_stator_current().value_as_double
-    
-    # Testing simple approach
-    # def elevator_at_limit(self) -> bool:
-    #     return self._elevator_motor.get_forward_limit() == ForwardLimitValue.CLOSED_TO_GROUND
 
-##### >> Needed to reverse - On Robot, switch at top is Reverse
     def elevator_at_top(self) -> bool:
-    # def elevator_at_bottom(self) -> bool:
         reverse_limit = self._elevator_motor.get_reverse_limit()
         return (reverse_limit.value is signals.ReverseLimitValue.CLOSED_TO_GROUND)
 
     def elevator_at_bottom(self) -> bool:
-    # def elevator_at_top(self) -> bool:
         forward_limit = self._elevator_motor.get_forward_limit()
         return (forward_limit.value is signals.ForwardLimitValue.CLOSED_TO_GROUND)
-
 
     def periodic(self) -> None:
         SmartDashboard.putBoolean("Forward (top) Limit", self.elevator_at_top())  
         SmartDashboard.putBoolean("Reverse (Bottom) Limit", self.elevator_at_bottom())  
         SmartDashboard.putNumber("Motor Current",  self._elevator_motor.get_stator_current().value_as_double)
         SmartDashboard.putNumber("Counter",        self._elevator_motor.get_position().value_as_double)
+
+    def set_flag_that_elevator_was_reset_at_the_bottom(self) -> None:
+        self.Elevator_started_at_bottom = True
+
+    def check_flag_that_elevator_was_reset_at_the_bottom(self) -> bool:
+        return self.Elevator_started_at_bottom
 
 
 #==================================================================================
@@ -138,50 +140,44 @@ class DriveElevatorManual(Command):
 
 #==================================================================================
 
-class MoveElevatorUpXCounts(Command):
-    def __init__(self, elevator: Elevator2, counts: float):
-        self.elevator = elevator
-        self.counts = counts
-        self.addRequirements(self.elevator)
-        self.current_position = 0
-        # print ("MoveElevatorUpXCounts Command Instantiated")
+# class MoveElevatorUpXCounts(Command):
+#     def __init__(self, elevator: Elevator2, counts: float):
+#         self.elevator = elevator
+#         self.counts = counts
+#         self.addRequirements(self.elevator)
+#         self.current_position = 0
 
-    def initialize(self):
-        # Get the current elevator position
-        self.current_position = self.elevator.get_elevator_encoder_count()
-
-        # print ("MoveElevatorUpXCounts Command Initialized")
-        pass
+#     def initialize(self):
+#         # Get the current elevator position
+#         self.current_position = self.elevator.get_elevator_encoder_count()
         
-    def execute(self):
-        self.elevator.DriveElevatorSpeed(0.2)
+#     def execute(self):
+#         self.elevator.DriveElevatorSpeed(0.2)
 
-    def isFinished(self) -> bool:      
-        return ( self.elevator.get_elevator_encoder_count() >= self.current_position + self.counts )
+#     def isFinished(self) -> bool:      
+#         return ( self.elevator.get_elevator_encoder_count() >= self.current_position + self.counts )
   
-    def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
-        self.elevator.DriveElevatorSpeed(0)
+#     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
+#         self.elevator.DriveElevatorSpeed(0)
 
 #==================================================================================
 
-class ResetElevatorCount(Command):
-    def __init__(self, elevator: Elevator2):
-        self.elevator = elevator
-        self.addRequirements(self.elevator)
-        # print ("ResetElevatorCount Command Instantiated")
+# class ResetElevatorCount(Command):
+#     def __init__(self, elevator: Elevator2):
+#         self.elevator = elevator
+#         self.addRequirements(self.elevator)
 
-    def initialize(self):
-        # print ("ResetElevatorCount Command Initialized")
-        self.elevator.reset_elevator_encoder_count()
+#     def initialize(self):
+#         self.elevator.reset_elevator_encoder_count()
         
-    def execute(self):
-        pass
+#     def execute(self):
+#         pass
 
-    def isFinished(self) -> bool:      # This command never finishes
-        return True
+#     def isFinished(self) -> bool:      # This command never finishes
+#         return True
   
-    def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
-        pass
+#     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
+#         pass
 
 #==================================================================================
 
@@ -192,7 +188,6 @@ class MoveToLowerLimitAndResetCounter(Command):
         # print ("ResetElevatorCount Command Instantiated")
 
     def initialize(self):
-        # print ("Move To Lower Limit And Reset Counter Command Initialized")
         self.elevator.DriveElevatorSpeed(-constants.ELEVATOR_SEEK_LOWER_LIMIT_SPEED)        # Start the elevator downward slowly
         
     def execute(self):
@@ -203,28 +198,29 @@ class MoveToLowerLimitAndResetCounter(Command):
   
     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
         self.elevator.reset_elevator_encoder_count()
+        self.elevator.set_flag_that_elevator_was_reset_at_the_bottom()
         SmartDashboard.putNumber("Counter", 0)
 
 #==================================================================================
 
-class AutonomousElevatorCommand(Command):
-    def __init__(self, elevator: Elevator2):
-        self.elevator = elevator
-        self.addRequirements(self.elevator)
-        # print ("AutonomousElevatorCommand Command Instantiated")
+# class AutonomousElevatorCommand(Command):
+#     def __init__(self, elevator: Elevator2):
+#         self.elevator = elevator
+#         self.addRequirements(self.elevator)
+#         # print ("AutonomousElevatorCommand Command Instantiated")
 
-    def initialize(self):
-        # print ("AutonomousElevatorCommand Command Initialized")
-        pass
+#     def initialize(self):
+#         # print ("AutonomousElevatorCommand Command Initialized")
+#         pass
 
-    def execute(self):
-        self.elevator.DriveElevatorSpeed(0.2)
+#     def execute(self):
+#         self.elevator.DriveElevatorSpeed(0.2)
 
-    def isFinished(self) -> bool:      # This command never finishes
-        return False
+#     def isFinished(self) -> bool:      # This command never finishes
+#         return False
   
-    def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
-        self.elevator.DriveElevatorSpeed(0)
+#     def end(self, interrupted: bool):    # If interupted by another command the motor is stopped
+#         self.elevator.DriveElevatorSpeed(0)
 #==================================================================================
 
 class MoveElevatorToSetPointX(Command):
@@ -234,12 +230,18 @@ class MoveElevatorToSetPointX(Command):
         self.addRequirements(self.elevator)
         self.current_position = 0
 
+    #  Need to add a check that the elevator was started at the bottom
+    ####  check_flag_that_elevator_was_reset_at_the_bottom()
+
     def initialize(self):
         print ("Move Elevator To Set Point X Command   <<<<<<<<<<<<<<<<<<<<<<<<<<<<xx<< ", self.target_position)
         # Get the current elevator position
         self.current_position = self.elevator.get_elevator_encoder_count()
         
-        
+        if not self.elevator.check_flag_that_elevator_was_reset_at_the_bottom():
+            print ("Elevator not started at the bottom !!!!!!!!!!!!!!!!!!")
+            # MoveToLowerLimitAndResetCounter(self.elevator)
+    
     def execute(self):
         self.current_position = self.elevator.get_elevator_encoder_count()
 

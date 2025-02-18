@@ -30,9 +30,9 @@ from wpilib import SmartDashboard
 from elevatorsubsystem import (
     Elevator2, 
     DriveElevatorManual, 
-    MoveElevatorUpXCounts, 
-    AutonomousElevatorCommand, 
-    ResetElevatorCount, 
+    # MoveElevatorUpXCounts, 
+    # AutonomousElevatorCommand, 
+    # ResetElevatorCount, 
     MoveToLowerLimitAndResetCounter,
     MoveElevatorToSetPointX,
     Move_Elevator_L1,  
