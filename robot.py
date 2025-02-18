@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Feb 12, 2025
+# Feb 12, 2025   python3 -m robotpy installer niweb disable
 import math
 import wpilib
 from wpilib import RobotBase, DriverStation

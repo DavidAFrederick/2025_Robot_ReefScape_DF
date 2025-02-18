@@ -57,6 +57,8 @@ FOLLOWER_MOTORS_PRESENT = True
 class DriveTrain(Subsystem):
     __DRIVER_DEADBAND = 0.1
     __FORWARD_SLEW = 3  # 1/3 of a second to full speed
+    __LEFT_FORWARD_SLEW = __FORWARD_SLEW
+    __RIGHT_FORWARD_SLEW = __FORWARD_SLEW
     __CLAMP_SPEED = 0.3
     __TURN_PID_SPEED = 0.3
 
@@ -96,7 +98,8 @@ class DriveTrain(Subsystem):
 
         SmartDashboard.putData("Navx", self._gyro)
 
-        self._forward_limiter: SlewRateLimiter = SlewRateLimiter(self.__FORWARD_SLEW)
+        self._left_forward_limiter: SlewRateLimiter = SlewRateLimiter(self.__LEFT_FORWARD_SLEW)
+        self._right_forward_limiter: SlewRateLimiter = SlewRateLimiter(self.__RIGHT_FORWARD_SLEW)
 
         self._test_mode = test_mode
         if self._test_mode:
@@ -395,11 +398,15 @@ class DriveTrain(Subsystem):
 
         speeds = wpilib.drive.DifferentialDrive.curvatureDriveIK(forward, turn, True)
 
-        self._left_volts_out.output = speeds.left * 12.0
-        self._right_volts_out.output = speeds.right * 12.0
+        # self._left_volts_out.output  = speeds.left  * 12.0
+        # self._right_volts_out.output = speeds.right * 12.0
+        self._left_volts_out.output =  self._left_forward_limiter.calculate(speeds.left) * 12.0
+        self._right_volts_out.output = self._right_forward_limiter.calculate(speeds.right) * 12.0
 
         self._left_leader.set_control(self._left_volts_out)
         self._right_leader.set_control(self._right_volts_out)
+        # print ("Forward: %4.2f  Forward: %4.2f   Vleft:  %4.2f  Vright: %4.2f "%
+        #         (forward, turn, self._left_volts_out.output, self._right_volts_out.output))
 
     def __drive_teleop_percent(self, forward: float, turn: float) -> None:
 
